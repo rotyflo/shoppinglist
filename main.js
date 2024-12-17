@@ -31,7 +31,7 @@ let days = {
 
 let ingredients = {
 	"burritos": {
-		"large tortillas": 2,
+		"large tortillas": 3,
 		"cups of rice": 0.5,
 		"cans of refried beans": 1,
 		"yellow onions": 1
@@ -41,50 +41,114 @@ let ingredients = {
 		"cups of rice": 1,
 		"miso packets": 2,
 		"dumplings": 8
+	},
+	"garbanzo bean bowls": {
+		"cups of brown rice": 1,
+		"cans of garbanzo beans": 1,
+		"cucumbers": 1,
+		"tomatoes": 1,
+		"red onions": 0.5,
+		"containers of feta cheese": 0.5,
+		"tablespoons of olive oil": 4,
+		"tablespoons of balsamic": 3
+	},
+	"spaghetti": {
+		"boxes of pasta": 0.5,
+		"cans of crushed tomatoes": 1,
+		"packs of ground turkey": 1,
+		"yellow onions": 1
 	}
-}
+};
 
-function addItem(item) {
-	// days["monday"]["lunch"] = item;
+function updateMeals() {
 	for (let day in days) {
-		let lunchButtonChecked = document.getElementById(`${day}-lunch-button`).checked;
-		let dinnerButtonChecked = document.getElementById(`${day}-dinner-button`).checked;
-
-		if (lunchButtonChecked) {
-			days[day]["lunch"] = item;
-		}
-		else if (dinnerButtonChecked) {
-			days[day]["dinner"] = item;
-		}
+		let lunch = document.getElementById(`${day}-lunch-dropdown`).value;
+		let dinner = document.getElementById(`${day}-dinner-dropdown`).value;
+		
+		days[day]["lunch"] = lunch;
+		days[day]["dinner"] = dinner;
 	}
-
-	// document.getElementById("monday-lunch").innerHTML = item
-	updateWeek();
 }
 
-function test(info) {
-	document.getElementById("shoppinglist").innerHTML = "<p>" + info + "</p>";
-}
-
-function updateWeek() {
+function printWeek() {
 	document.getElementById("week").innerHTML = "";
 
 	for (let day in days) {
 		document.getElementById("week").innerHTML += 
-			`<div id="${day}"> 
+			`<div id="${day}">
 				<p>${day.toUpperCase()}</p>
 				<div>
-					<input type="radio" value="${day}-lunch" name="test" id="${day}-lunch-button">
 					<label for="${day}-lunch" id="${day}-lunch">Lunch</label>
-					<p>&emsp;&emsp;${days[day]["lunch"]}</p>
+					${getDropdownHTML(day, 'lunch')}
 				</div> 
 				<div>
-					<input type="radio" value="${day}-dinner" name="test" id="${day}-dinner-button">
 					<label for="${day}-dinner" id="${day}-dinner">Dinner</label>
-					<p>&emsp;&emsp;${days[day]["dinner"]}</p>
+					${getDropdownHTML(day, 'dinner')}
 				</div>
 			</div>`;
 	}
 }
 
-updateWeek();
+function getDropdownHTML(day, mealtime) {
+	let dropdownHTML = 
+		`<select name="meals" id="${day}-${mealtime}-dropdown" onchange="updateMeals(); printShoppingList()">
+			<option value="null">---</option>`;
+
+	for (meal in ingredients) {
+		dropdownHTML += `<option value="${meal}">${capitalize(meal)}</option>`
+	}
+
+	dropdownHTML += '</select>';
+
+	return dropdownHTML;
+}
+
+function getShoppingList() {
+	let meals = ["lunch", "dinner"];
+	let shoppingList = {};
+
+	for (let day in days) {
+		for (let i = 0; i < meals.length; i++) {
+			let meal = days[day][meals[i]];
+
+			if (meal) {
+				let ingredientsForMeal = ingredients[meal];
+
+				for (let ingredient in ingredientsForMeal) {
+					if (shoppingList[ingredient]) {
+						shoppingList[ingredient] += ingredientsForMeal[ingredient];
+					}
+					else {
+						shoppingList[ingredient] = ingredientsForMeal[ingredient];
+					}
+				}
+			}
+		}
+	}
+	
+	return shoppingList;
+}
+
+function printShoppingList() {
+	let shoppingList = getShoppingList();
+
+	document.getElementById("shoppinglist").innerHTML = "";
+	for (let ingredient in shoppingList) {
+		console.log("success");
+		document.getElementById("shoppinglist").innerHTML +=
+		`<p>${shoppingList[ingredient]} ${capitalize(ingredient)}</p>`;
+	}
+}
+
+function capitalize(str) {
+	let words = str.split(" ");
+	let capitalizedWords = [];
+
+	for (let i = 0; i < words.length; i++) {
+		capitalizedWords.push(words[i][0].toUpperCase() + words[i].substring(1));
+	}
+
+	return capitalizedWords.join(" ");
+}
+
+printWeek();
